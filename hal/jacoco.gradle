@@ -1,4 +1,10 @@
+coveralls {
+    sourceDirs = subprojects.sourceSets.main.allSource.srcDirs.flatten()
+    jacocoReportPath 'hal/build/reports/jacoco/testReleaseUnitTestCoverage/testReleaseUnitTestCoverage.xml'
+}
+
 apply plugin: 'jacoco'
+apply plugin: 'com.github.kt3k.coveralls'
 
 jacoco {
     toolVersion = "0.8.4"

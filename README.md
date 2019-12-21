@@ -1,5 +1,7 @@
 # hal
 
+[![Coverage Status](https://coveralls.io/repos/github/ranapat/hal/badge.svg?branch=master)](https://coveralls.io/github/ranapat/hal?branch=master)
+
 Android library for Hal url parameter parsing library
 
 ## How to get it

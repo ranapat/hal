@@ -1,13 +1,11 @@
+apply plugin: 'jacoco'
+apply plugin: 'com.github.kt3k.coveralls'
+jacoco {
+    toolVersion = "0.8.5"
+}
 coveralls {
     sourceDirs = subprojects.sourceSets.main.allSource.srcDirs.flatten()
     jacocoReportPath 'hal/build/reports/jacoco/testReleaseUnitTestCoverage/testReleaseUnitTestCoverage.xml'
-}
-
-apply plugin: 'jacoco'
-apply plugin: 'com.github.kt3k.coveralls'
-
-jacoco {
-    toolVersion = "0.8.4"
 }
 project.afterEvaluate {
     // Grab all build types and product flavors
@@ -34,7 +32,7 @@ project.afterEvaluate {
             task "${testTaskName}Coverage" (type:JacocoReport, dependsOn: "$testTaskName") {
                 group = "Reporting"
                 description = "Generate Jacoco coverage reports on the ${sourceName.capitalize()} build."
-                classDirectories = fileTree(
+                classDirectories.setFrom(fileTree(
                         dir: "${project.buildDir}/intermediates/javac/${sourcePath}",
                         excludes: [
                                 '**/R.class',
@@ -43,17 +41,18 @@ project.afterEvaluate {
                                 '**/BuildConfig.*',
                                 '**/Manifest*.*'
                         ]
-                )
+                ))
                 def coverageSourceDirs = [
                         "src/main/java",
                         "src/$productFlavorName/java",
                         "src/$buildTypeName/java"
                 ]
-                additionalSourceDirs = files(coverageSourceDirs)
-                sourceDirectories = files(coverageSourceDirs)
-                executionData = files("${project.buildDir}/jacoco/${testTaskName}.exec")
+                additionalSourceDirs.setFrom(files(coverageSourceDirs))
+                sourceDirectories.setFrom(files(coverageSourceDirs))
+                executionData.setFrom(files("${project.buildDir}/jacoco/${testTaskName}.exec"))
                 reports {
                     xml.enabled = true
+                    csv.enabled = true
                     html.enabled = true
                 }
             }

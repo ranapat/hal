@@ -92,10 +92,10 @@ public class HalUrlTest {
 
     @Test
     public void shouldHandleOptionalParametersCase4() {
-        final HalUrl halUrl = new HalUrl("something/{@key1}");
+        final HalUrl halUrl = new HalUrl("something/{*key1}");
         halUrl.addParameter("key1", "value1");
 
-        assertThat(halUrl.toString(), is(equalTo("something/{@key1}")));
+        assertThat(halUrl.toString(), is(equalTo("something/{*key1}")));
     }
 
     @Test
@@ -136,11 +136,11 @@ public class HalUrlTest {
 
     @Test
     public void shouldHandleOptionalParametersCase9() {
-        final HalUrl halUrl = new HalUrl("something/{@key1,key2}");
+        final HalUrl halUrl = new HalUrl("something/{*key1,key2}");
         halUrl.addParameter("key1", "value1");
         halUrl.addParameter("key2", "value2");
 
-        assertThat(halUrl.toString(), is(equalTo("something/{@key1,key2}")));
+        assertThat(halUrl.toString(), is(equalTo("something/{*key1,key2}")));
     }
 
     @Test
@@ -254,6 +254,31 @@ public class HalUrlTest {
     }
 
     @Test
+    public void shouldHandleNullableParametersCase1() {
+        final HalUrl halUrl = new HalUrl("something/{@key1}");
+        halUrl.addParameter("key1", "value1");
+
+        assertThat(halUrl.toString(), is(equalTo("something/value1")));
+    }
+
+    @Test
+    public void shouldHandleNullableParametersCase2() {
+        final HalUrl halUrl = new HalUrl("something/{@key1}");
+        halUrl.addParameter("key2", "value2");
+
+        assertThat(halUrl.toString(), is(equalTo("something/")));
+    }
+
+    @Test
+    public void shouldHandleNullableParametersCase3() {
+        final HalUrl halUrl = new HalUrl("something/{@key1,key2}");
+        halUrl.addParameter("key1", "value1");
+        halUrl.addParameter("key2", "value2");
+
+        assertThat(halUrl.toString(), is(equalTo("something/{@key1,key2}")));
+    }
+
+    @Test
     public void shouldHandleMixedParametersCase1() {
         final HalUrl halUrl = new HalUrl("something/{key1}{#key2,key3}&key4=value4{#key5,key6}");
         halUrl.addParameter("key1", "value1");
@@ -280,6 +305,25 @@ public class HalUrlTest {
         halUrl.addParameter("key6", "value6");
 
         assertThat(halUrl.toString(), is(equalTo("something/value1&key4=value4?key6=value6")));
+    }
+
+    @Test
+    public void shouldHandleMixedParametersCase4() {
+        final HalUrl halUrl = new HalUrl("something/{@key7}/{key1}{#key2,key3}&key4=value4{#key5,key6}");
+        halUrl.addParameter("key1", "value1");
+        halUrl.addParameter("key6", "value6");
+        halUrl.addParameter("key7", "value7");
+
+        assertThat(halUrl.toString(), is(equalTo("something/value7/value1&key4=value4?key6=value6")));
+    }
+
+    @Test
+    public void shouldHandleMixedParametersCase5() {
+        final HalUrl halUrl = new HalUrl("something/{@key7}/{key1}{#key2,key3}&key4=value4{#key5,key6}");
+        halUrl.addParameter("key1", "value1");
+        halUrl.addParameter("key6", "value6");
+
+        assertThat(halUrl.toString(), is(equalTo("something//value1&key4=value4?key6=value6")));
     }
 
     @Test

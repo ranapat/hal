@@ -51,6 +51,12 @@ Hal.parse("https://domain.com/{?key1,key2}", new HashMap<String, Object>() {{
     put("key1", "value1");
     put("key2", "value2");
 }});
+Hal.parse("https://domain.com/{@key}", new HashMap<String, Object>() {{
+    put("key", "value");
+}});
+Hal.parse("https://domain.com/{@key}", new HashMap<String, Object>() {{
+    put("key1", "value1");
+}});
 try {
     Hal.parse("https://domain.com/{key}", new HashMap<String, Object>() {{
         put("_key", "value");

@@ -30,6 +30,12 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Example ", Hal.parse("https://domain.com/{?key}", new HashMap<String, Object>() {{
             put("_key", "value");
         }}));
+        Log.d("Example ", Hal.parse("https://domain.com/{@key}", new HashMap<String, Object>() {{
+            put("key", "value");
+        }}));
+        Log.d("Example ", Hal.parse("https://domain.com/{@key}", new HashMap<String, Object>() {{
+            put("_key", "value");
+        }}));
         try {
             Log.d("Example ", Hal.parse("https://domain.com/{key}", new HashMap<String, Object>() {{
                 put("_key", "value");

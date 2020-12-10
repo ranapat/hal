@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 public final class HalUrl {
     private final Pattern requiredPattern;
     private final Pattern optionalPattern;
+    private final Pattern nullablePattern;
 
     private final String url;
     private final Map<String, String> parameters;
@@ -17,6 +18,7 @@ public final class HalUrl {
     public HalUrl(final String url) {
         requiredPattern = Pattern.compile("\\{(\\w+)\\}");
         optionalPattern = Pattern.compile("\\{[\\?&#]([\\w,]+)\\}");
+        nullablePattern = Pattern.compile("\\{[@]([\\w]+)\\}");
 
         this.url = url;
         this.parameters = new HashMap<>();
@@ -47,6 +49,7 @@ public final class HalUrl {
         final List<String> provided = new ArrayList<>(parameters.keySet());
         final List<String> required = getRequiredKeys();
         final List<String> optional = getOptionalKeys();
+        final List<String> nullable = getNullableKeys();
 
         if (!provided.containsAll(required)) {
             throw new HalMissingRequiredParametersException(getMissing(required, provided));
@@ -54,6 +57,7 @@ public final class HalUrl {
 
         result = populateRequired(result, required);
         result = populateOptional(result, optional);
+        result = populateNullable(result, nullable);
 
         return result;
     }
@@ -77,6 +81,17 @@ public final class HalUrl {
             for (final String part : m.group(1).split(",")) {
                 allMatches.add(part);
             }
+        }
+
+        return allMatches;
+    }
+
+    private List<String> getNullableKeys() {
+        final List<String> allMatches = new ArrayList<>();
+        final Matcher m = nullablePattern.matcher(url);
+
+        while (m.find()) {
+            allMatches.add(m.group(1));
         }
 
         return allMatches;
@@ -110,11 +125,11 @@ public final class HalUrl {
         final Matcher m = optionalPattern.matcher(url);
         while (m.find()) {
             final String foundComplete = m.group(0);
-            final String foundGroupped = m.group(1);
+            final String foundGrouped = m.group(1);
             final List<String> populated = new ArrayList<>();
             final List<String> allMatches = new ArrayList<>();
 
-            for (final String part : foundGroupped.split(",")) {
+            for (final String part : foundGrouped.split(",")) {
                 allMatches.add(part);
             }
             for (final String key : optional) {
@@ -134,6 +149,20 @@ public final class HalUrl {
                 result = result.replace(foundComplete, "?" + joined);
             } else {
                 result = result.replace(foundComplete, "&" + joined);
+            }
+        }
+
+        return result;
+    }
+
+    private String populateNullable(final String url, final List<String> nullable) {
+        String result = url;
+
+        for (final String key : nullable) {
+            if (!parameters.containsKey(key)) {
+                result = result.replaceAll("\\{@" + key + "\\}", "");
+            } else {
+                result = result.replaceAll("\\{@" + key + "\\}", parameters.get(key));
             }
         }
 

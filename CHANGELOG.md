@@ -1,0 +1,8 @@
+# Change Log
+All notable changes to the project will be documented in this file.
+
+## [ 1 - 1.2.1 ] - 2021-01-27
+Version so far
+
+### Changes
+- initial structure

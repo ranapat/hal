@@ -5,7 +5,6 @@ apply from: "./jacoco.gradle"
 
 android {
     compileSdkVersion sdk_compile_version
-    buildToolsVersion build_tools_version
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

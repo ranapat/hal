@@ -5,7 +5,7 @@ jacoco {
 }
 coveralls {
     sourceDirs = subprojects.sourceSets.main.allSource.srcDirs.flatten()
-    jacocoReportPath 'hal/build/reports/jacoco/testReleaseUnitTestCoverage/testReleaseUnitTestCoverage.xml'
+    jacocoReportPath 'build/reports/jacoco/testReleaseUnitTestCoverage/testReleaseUnitTestCoverage.xml'
 }
 project.afterEvaluate {
     // Grab all build types and product flavors

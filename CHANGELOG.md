@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the project will be documented in this file.
 
+## [ 6 - 1.6.0 ] - 2021-11-29
+Try stable version
+
 ## [ 5 - 1.5.0 ] - 2021-11-29
 Try latest versions
 

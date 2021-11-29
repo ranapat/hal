@@ -1,2 +1,2 @@
 include ':app', ':hal'
-rootProject.name='Example'
+rootProject.name='Hal Example'

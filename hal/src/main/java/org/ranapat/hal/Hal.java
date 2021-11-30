@@ -5,12 +5,6 @@ import java.util.Map;
 public final class Hal {
     private Hal() {}
 
-    /*public static Map<String, String> match(final String url, final String string) throws HalException {
-        new HalUrl(url).match(string);
-
-        return null;
-    }*/
-
     public static String parse(final String url) throws HalException {
         return new HalUrl(url).toString();
     }

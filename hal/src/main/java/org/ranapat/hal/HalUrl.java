@@ -29,7 +29,11 @@ public final class HalUrl {
         }
     }
 
-    public List<HalParameter> getParameters() {
+    public List<HalParameter> getParameters() throws HalException {
+        if (url == null) {
+            throw new HalNullPointerException();
+        }
+
         final List<HalParameter> result = new ArrayList<>();
 
         final List<String> required = getRequiredKeys();

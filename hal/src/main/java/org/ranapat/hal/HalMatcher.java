@@ -10,7 +10,27 @@ import java.util.regex.Pattern;
 public final class HalMatcher {
     private HalMatcher() {}
 
+    public static List<HalParameterSet> safe(final String url, final String string) {
+        try {
+            return match(url, string);
+        } catch (final HalException e) {
+            return null;
+        }
+    }
+
+    public static Map<String, String> safeMap(final String url, final String string) {
+        try {
+            return map(url, string);
+        } catch (final Exception e) {
+            return null;
+        }
+    }
+
     public static List<HalParameterSet> match(final String url, final String string) throws HalException {
+        if (string == null) {
+            throw new HalNullPointerException();
+        }
+
         final HalUrl halUrl = new HalUrl(url);
         final List<HalParameter> parameters = halUrl.getParameters();
         final List<HalParameter> usedParameters = new ArrayList<>();
@@ -80,7 +100,7 @@ public final class HalMatcher {
         }
     }
 
-    public static Map<String, String> matchToMap(final String url, final String string) throws HalException {
+    public static Map<String, String> map(final String url, final String string) throws HalException {
         final List<HalParameterSet> match = match(url, string);
 
         if (match != null) {

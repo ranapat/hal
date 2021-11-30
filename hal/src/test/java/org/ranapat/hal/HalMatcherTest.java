@@ -1,7 +1,9 @@
 package org.ranapat.hal;
 
+import static junit.framework.TestCase.fail;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Test;
@@ -302,6 +304,34 @@ public class HalMatcherTest {
     }
 
     @Test
+    public void shouldMatchCase93() {
+        final String url = "something";
+        final String string = null;
+
+        try {
+            HalMatcher.match(url, string);
+            fail("Method shall throw");
+        } catch (final HalNullPointerException e) {
+            assertThat(e.getMessage(), is(equalTo("Cannot handle null strings")));
+            assertThat(e.toString(), is(equalTo("HalNullPointerException{}")));
+        }
+    }
+
+    @Test
+    public void shouldMatchCase94() {
+        final String url = null;
+        final String string = "something-value1";
+
+        try {
+            HalMatcher.match(url, string);
+            fail("Method shall throw");
+        } catch (final HalNullPointerException e) {
+            assertThat(e.getMessage(), is(equalTo("Cannot handle null strings")));
+            assertThat(e.toString(), is(equalTo("HalNullPointerException{}")));
+        }
+    }
+
+    @Test
     public void shouldMatchCase95() {
         final String url = "something(.*)/{key1}";
         final String string = "something/value1";
@@ -352,11 +382,11 @@ public class HalMatcherTest {
     }
 
     @Test
-    public void shouldMatchToMapCase1() {
+    public void shouldMapCase1() {
         final String url = "something/{key1}/{?key2,key3}/{@key4}";
         final String string = "something/value1/?key2=value2&key3=value3/value4";
 
-        final Map<String, String> map = HalMatcher.matchToMap(url, string);
+        final Map<String, String> map = HalMatcher.map(url, string);
 
         assertThat(map.size(), is(equalTo(4)));
 
@@ -367,13 +397,45 @@ public class HalMatcherTest {
     }
 
     @Test
-    public void shouldMatchToMapCase2() {
+    public void shouldMapCase2() {
         final String url = "something/{key1}/{?key2,key3}/{@key4}";
         final String string = "something/";
 
-        final Map<String, String> map = HalMatcher.matchToMap(url, string);
+        final Map<String, String> map = HalMatcher.map(url, string);
 
         assertThat(map, is(equalTo(null)));
+    }
+
+    @Test
+    public void shouldSafeCase1() {
+        final String url = null;
+        final String string = "something-value1";
+
+        assertThat(HalMatcher.safe(url, string), is(equalTo(null)));
+    }
+
+    @Test
+    public void shouldSafeCase2() {
+        final String url = "something";
+        final String string = "something";
+
+        assertThat(HalMatcher.safe(url, string), is(not(equalTo(null))));
+    }
+
+    @Test
+    public void shouldSafeMapCase1() {
+        final String url = null;
+        final String string = "something-value1";
+
+        assertThat(HalMatcher.safeMap(url, string), is(equalTo(null)));
+    }
+
+    @Test
+    public void shouldSafeMapCase2() {
+        final String url = "something";
+        final String string = "something";
+
+        assertThat(HalMatcher.safeMap(url, string), is(not(equalTo(null))));
     }
 
 }

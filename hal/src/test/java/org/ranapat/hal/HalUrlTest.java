@@ -354,7 +354,7 @@ public class HalUrlTest {
     }
 
     @Test
-    public void shouldHandleGetParameters() {
+    public void shouldHandleGetParametersCase1() {
         final HalUrl halUrl = new HalUrl("something/{key1}{#key2,key3}&key4=value4{#key5,key6}{@key7}");
 
         final List<HalParameter> parameters = halUrl.getParameters();
@@ -378,6 +378,19 @@ public class HalUrlTest {
 
         assertThat(parameters.get(5).name, is(equalTo("key7")));
         assertThat(parameters.get(5).type, is(equalTo(HalParameter.Type.Nullable)));
+    }
+
+    @Test
+    public void shouldHandleGetParametersCase2() {
+        final HalUrl halUrl = new HalUrl(null);
+
+        try {
+            halUrl.getParameters();
+            fail("Method shall throw");
+        } catch (final HalNullPointerException e) {
+            assertThat(e.getMessage(), is(equalTo("Cannot handle null strings")));
+            assertThat(e.toString(), is(equalTo("HalNullPointerException{}")));
+        }
     }
 
     @Test

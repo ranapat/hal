@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the project will be documented in this file.
 
+## [ 8 - 1.8.0 ] - 2021-11-29
+Handle Nulls in matcher
+
 ## [ 7 - 1.7.0 ] - 2021-11-29
 Matcher
 

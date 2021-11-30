@@ -1,25 +1,20 @@
 package org.ranapat.hal;
 
+import static org.ranapat.hal.HalConstants.nullablePattern;
+import static org.ranapat.hal.HalConstants.optionalPattern;
+import static org.ranapat.hal.HalConstants.requiredPattern;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public final class HalUrl {
-    private final Pattern requiredPattern;
-    private final Pattern optionalPattern;
-    private final Pattern nullablePattern;
-
     private final String url;
     private final Map<String, String> parameters;
 
     public HalUrl(final String url) {
-        requiredPattern = Pattern.compile("\\{(\\w+)\\}");
-        optionalPattern = Pattern.compile("\\{[\\?&#]([\\w,]+)\\}");
-        nullablePattern = Pattern.compile("\\{[@]([\\w]+)\\}");
-
         this.url = url;
         this.parameters = new HashMap<>();
     }
@@ -32,6 +27,26 @@ public final class HalUrl {
         if (parameters.containsKey(key)) {
             parameters.remove(key);
         }
+    }
+
+    public List<HalParameter> getParameters() {
+        final List<HalParameter> result = new ArrayList<>();
+
+        final List<String> required = getRequiredKeys();
+        final List<String> optional = getOptionalKeys();
+        final List<String> nullable = getNullableKeys();
+
+        for (final String key : required) {
+            result.add(new HalParameter(key, HalParameter.Type.Required));
+        }
+        for (final String key : optional) {
+            result.add(new HalParameter(key, HalParameter.Type.Optional));
+        }
+        for (final String key : nullable) {
+            result.add(new HalParameter(key, HalParameter.Type.Nullable));
+        }
+
+        return result;
     }
 
     @Override

@@ -1,11 +1,13 @@
 package org.ranapat.hal;
 
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
+
+import org.junit.Test;
+
+import java.util.List;
 
 public class HalUrlTest {
 
@@ -349,6 +351,33 @@ public class HalUrlTest {
         halUrl.removeParameter("key7");
 
         assertThat(halUrl.toString(), is(equalTo("something/value1&key4=value4?key6=value6")));
+    }
+
+    @Test
+    public void shouldHandleGetParameters() {
+        final HalUrl halUrl = new HalUrl("something/{key1}{#key2,key3}&key4=value4{#key5,key6}{@key7}");
+
+        final List<HalParameter> parameters = halUrl.getParameters();
+
+        assertThat(parameters.size(), is(equalTo(6)));
+
+        assertThat(parameters.get(0).name, is(equalTo("key1")));
+        assertThat(parameters.get(0).type, is(equalTo(HalParameter.Type.Required)));
+
+        assertThat(parameters.get(1).name, is(equalTo("key2")));
+        assertThat(parameters.get(1).type, is(equalTo(HalParameter.Type.Optional)));
+
+        assertThat(parameters.get(2).name, is(equalTo("key3")));
+        assertThat(parameters.get(2).type, is(equalTo(HalParameter.Type.Optional)));
+
+        assertThat(parameters.get(3).name, is(equalTo("key5")));
+        assertThat(parameters.get(3).type, is(equalTo(HalParameter.Type.Optional)));
+
+        assertThat(parameters.get(4).name, is(equalTo("key6")));
+        assertThat(parameters.get(4).type, is(equalTo(HalParameter.Type.Optional)));
+
+        assertThat(parameters.get(5).name, is(equalTo("key7")));
+        assertThat(parameters.get(5).type, is(equalTo(HalParameter.Type.Nullable)));
     }
 
     @Test

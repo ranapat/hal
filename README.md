@@ -73,3 +73,13 @@ Hal.safe("https://domain.com/{key}", new HashMap<String, Object>() {{
     put("_key", "value");
 }});
 ``` 
+
+Check for match
+
+```java
+final String url = "something/{key1}";
+final String string = "something/value1";
+
+final List<HalParameterSet> parameters = HalMatcher.match(url, string);
+final Map<String, String> map = HalMatcher.matchToMap(url, string);
+```

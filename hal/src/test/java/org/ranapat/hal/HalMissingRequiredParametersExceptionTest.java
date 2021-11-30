@@ -1,11 +1,11 @@
 package org.ranapat.hal;
 
-import org.junit.Test;
-
-import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static java.util.Arrays.asList;
+
+import org.junit.Test;
 
 public class HalMissingRequiredParametersExceptionTest {
 

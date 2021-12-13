@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to the project will be documented in this file.
 
+## [ 9 - 1.9.0 ] - 2021-12-13
+Wild matching
+
 ## [ 8 - 1.8.0 ] - 2021-11-29
 Handle Nulls in matcher
 

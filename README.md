@@ -4,6 +4,47 @@
 
 Android library for Hal url parameter parsing library
 
+## Quick guide
+
+### ```{name}``` - name is required
+```/path/{name}``` will become ```/path/value```
+
+### ```{?name}``` - name is optional
+```/path/{?name}``` will become ```/path/?name=value```
+or
+```/path/{?name}``` will become ```/path/```
+
+### ```{&name}``` - name is optional
+```/path/{&name}``` will become ```/path/?name=value```
+or
+```/path/{&name}``` will become ```/path/```
+
+### ```{#name}``` - name is optional
+```/path/{#name}``` will become ```/path/?name=value```
+or
+```/path/{#name}``` will become ```/path/```
+
+### ```{#name1,name2}``` - name1 and name2 are optional
+```/path/{#name1,name2}``` will become ```/path/?name1=value1&name2=value2```
+or
+```/path/{#name1,name2}``` will become ```/path/?name1=value1```
+or
+```/path/{#name1,name2}``` will become ```/path/?name2=value2```
+or
+```/path/{#name1,name2}``` will become ```/path/```
+
+### ```{@name}``` - name is nullable
+```/path/{@name}``` will become ```/path/value```
+or
+```/path/{@name}``` will become ```/path/```
+
+### ```{*name}``` - name is wild
+```/path/{*name}``` will become ```/path/value```
+or
+```/path/{*name}``` will become ```/path/```
+or
+```/path/{*name}``` will become ```/path/complete/path/with/many```
+
 ## How to get it
 
 ### Get it from jitpack

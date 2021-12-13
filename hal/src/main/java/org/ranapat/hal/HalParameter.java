@@ -4,7 +4,8 @@ public class HalParameter {
     enum Type {
         Required,
         Optional,
-        Nullable
+        Nullable,
+        Wild
     }
 
     public final String name;

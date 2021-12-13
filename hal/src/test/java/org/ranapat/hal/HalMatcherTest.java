@@ -14,6 +14,16 @@ import java.util.Map;
 public class HalMatcherTest {
 
     @Test
+    public void shouldMatchCase0() {
+        final String url = "something-direct-match";
+        final String string = "something-direct-match";
+
+        final List<HalParameterSet> parameters = HalMatcher.match(url, string);
+
+        assertThat(parameters.size(), is(equalTo(0)));
+    }
+
+    @Test
     public void shouldMatchCase1() {
         final String url = "something/{key1}";
         final String string = "something/value1";

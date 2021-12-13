@@ -30,6 +30,9 @@ public final class HalMatcher {
         if (string == null) {
             throw new HalNullPointerException();
         }
+        if (url != null && url.equals(string)) {
+            return new ArrayList<>();
+        }
 
         final HalUrl halUrl = new HalUrl(url);
         final List<HalParameter> parameters = halUrl.getParameters();

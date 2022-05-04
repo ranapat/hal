@@ -346,6 +346,48 @@ public class HalMatcherTest {
     }
 
     @Test
+    public void shouldMatchCase18() {
+        final String url = "something/{key1}";
+        final String string = "something/value1,value2";
+
+        final List<HalParameterSet> parameters = HalMatcher.match(url, string);
+
+        assertThat(parameters.size(), is(equalTo(1)));
+
+        assertThat(parameters.get(0).name, is(equalTo("key1")));
+        assertThat(parameters.get(0).type, is(equalTo(HalParameter.Type.Required)));
+        assertThat(parameters.get(0).value, is(equalTo("value1,value2")));
+    }
+
+    @Test
+    public void shouldMatchCase19() {
+        final String url = "something/{?key1}";
+        final String string = "something/?key1=value1,value2";
+
+        final List<HalParameterSet> parameters = HalMatcher.match(url, string);
+
+        assertThat(parameters.size(), is(equalTo(1)));
+
+        assertThat(parameters.get(0).name, is(equalTo("key1")));
+        assertThat(parameters.get(0).type, is(equalTo(HalParameter.Type.Optional)));
+        assertThat(parameters.get(0).value, is(equalTo("value1,value2")));
+    }
+
+    @Test
+    public void shouldMatchCase20() {
+        final String url = "something/{@key1}";
+        final String string = "something/value1,value2";
+
+        final List<HalParameterSet> parameters = HalMatcher.match(url, string);
+
+        assertThat(parameters.size(), is(equalTo(1)));
+
+        assertThat(parameters.get(0).name, is(equalTo("key1")));
+        assertThat(parameters.get(0).type, is(equalTo(HalParameter.Type.Nullable)));
+        assertThat(parameters.get(0).value, is(equalTo("value1,value2")));
+    }
+
+    @Test
     public void shouldMatchCase93() {
         final String url = "something";
         final String string = null;

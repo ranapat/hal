@@ -5,7 +5,7 @@ All notable changes to the project will be documented in this file.
 Support hyphen and update gradle.
 
 Thanks to:
-- Alen [<img src="https://github.com/alenpmla.png" width="60px">](https://github.com/alenpmla)
+- [<img src="https://github.com/alenpmla.png" width="60px">](https://github.com/alenpmla) Alen
 
 ## [ 9 - 1.9.0 ] - 2021-12-13
 Wild matching

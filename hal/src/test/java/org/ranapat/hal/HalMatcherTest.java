@@ -523,7 +523,7 @@ public class HalMatcherTest {
     }
 
     @Test
-    public void shouldMatchCaseWithHyphen() {
+    public void shouldMatchCaseWithHyphenRequired() {
         final String url = "something/{key1}";
         final String string = "something/value-with-hyphen";
 
@@ -536,5 +536,46 @@ public class HalMatcherTest {
         assertThat(parameters.get(0).value, is(equalTo("value-with-hyphen")));
     }
 
+    @Test
+    public void shouldMatchCaseWithHyphenOptional() {
+        final String url = "something/{?key1}";
+        final String string = "something/?key1=value-with-hyphen";
+
+        final List<HalParameterSet> parameters = HalMatcher.match(url, string);
+
+        assertThat(parameters.size(), is(equalTo(1)));
+
+        assertThat(parameters.get(0).name, is(equalTo("key1")));
+        assertThat(parameters.get(0).type, is(equalTo(HalParameter.Type.Optional)));
+        assertThat(parameters.get(0).value, is(equalTo("value-with-hyphen")));
+    }
+
+    @Test
+    public void shouldMatchCaseWithHyphenNullable() {
+        final String url = "something/{@key1}";
+        final String string = "something/value-with-hyphen";
+
+        final List<HalParameterSet> parameters = HalMatcher.match(url, string);
+
+        assertThat(parameters.size(), is(equalTo(1)));
+
+        assertThat(parameters.get(0).name, is(equalTo("key1")));
+        assertThat(parameters.get(0).type, is(equalTo(HalParameter.Type.Nullable)));
+        assertThat(parameters.get(0).value, is(equalTo("value-with-hyphen")));
+    }
+
+    @Test
+    public void shouldMatchCaseWithHyphenWild() {
+        final String url = "something/{*key1}";
+        final String string = "something/value-with-hyphen";
+
+        final List<HalParameterSet> parameters = HalMatcher.match(url, string);
+
+        assertThat(parameters.size(), is(equalTo(1)));
+
+        assertThat(parameters.get(0).name, is(equalTo("key1")));
+        assertThat(parameters.get(0).type, is(equalTo(HalParameter.Type.Wild)));
+        assertThat(parameters.get(0).value, is(equalTo("value-with-hyphen")));
+    }
 
 }

@@ -40,11 +40,11 @@ public final class HalMatcher {
 
         for (final HalParameter parameter : parameters) {
             if (parameter.type == HalParameter.Type.Required) {
-                halUrl.addParameter(parameter.name, "([\\\\w,]+)");
+                halUrl.addParameter(parameter.name, "([\\\\w,\\\\-]+)");
                 usedParameters.add(parameter);
             } else if (parameter.type == HalParameter.Type.Optional) {
                 if (string.indexOf(parameter.name) != -1) {
-                    halUrl.addParameter(parameter.name, "([\\w,]+)");
+                    halUrl.addParameter(parameter.name, "([\\w,\\-]+)");
                     usedParameters.add(parameter);
                 }
             } else if (parameter.type == HalParameter.Type.Wild) {

@@ -4,7 +4,7 @@ All notable changes to the project will be documented in this file.
 ## [ 12 - 1.12.0 ] - 2021-12-13
 Support hyphen and update gradle.
 
-Thanks to [<img src="https://github.com/alenpmla.png" width="60px;"/><br /><sub><ahref="https://github.com/alenpmla">alenpmla</a></sub>](https://github.com/alenpmla
+Thanks to [<img src="https://github.com/alenpmla.png" width="60px;"/><br /><sub><a href="https://github.com/alenpmla">alenpmla</a></sub>](https://github.com/alenpmla
 
 ## [ 9 - 1.9.0 ] - 2021-12-13
 Wild matching

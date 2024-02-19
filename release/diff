@@ -1,0 +1,85 @@
+#!/bin/bash
+
+CLI_COLOR_RED=`tput setaf 1`
+CLI_COLOR_GREEN=`tput setaf 2`
+CLI_COLOR_YELLOW=`tput setaf 3`
+CLI_COLOR_BLUE=`tput setaf 4`
+CLI_COLOR_VIOLET=`tput setaf 5`
+CLI_COLOR_LIGHT_BLUE=`tput setaf 6`
+CLI_COLOR_WHITE=`tput setaf 7`
+CLI_COLOR_GRAY=`tput setaf 8`
+CLI_COLOR_PINK=`tput setaf 9`
+CLI_COLOR_LIGHT_GREEN=`tput setaf 10`
+CLI_COLOR_RESET=`tput sgr0`
+
+rootPath=$(git rev-parse --show-toplevel)
+GRADLE_FILE='build.gradle'
+
+maxVersionCode=0
+maxVersionName=""
+maxVersionBranch=""
+
+function getVersionCodeFromFile() {
+    cat $1 | sed -En 's/^.*version_code = ([0-9]+).*$/\1/p'
+}
+
+function getVersionNameFromFile() {
+    cat $1 | sed -En 's/^.*version_name = "([^"]+)".*$/\1/p'
+}
+
+function findMaxVersion() {
+    for branch in $(git for-each-ref --format='%(refname)'); do
+        code=$(git show $branch:$GRADLE_FILE 2>/dev/null | sed -En 's/^.*version_code = ([0-9]+).*$/\1/p')
+
+        if [ -n "$code" ]; then
+            if [ "$code" -gt "$maxVersionCode" ]; then
+                maxVersionCode=$code
+                maxVersionName=$(git show $branch:$GRADLE_FILE 2>/dev/null | sed -En 's/^.*version_name = "([^"]+)".*$/\1/p')
+                maxVersionBranch=$branch
+            fi
+        fi
+        # echo "branch $branch - code $code"
+    done
+}
+
+function findLatestVersion() {
+    git fetch
+
+    findMaxVersion
+
+    echo "${CLI_COLOR_GREEN}Latest release version is ${CLI_COLOR_WHITE}$maxVersionCode ${CLI_COLOR_LIGHT_BLUE}$maxVersionName${CLI_COLOR_GREEN} and is located in ${CLI_COLOR_YELLOW}$maxVersionBranch${CLI_COLOR_RESET}"
+    echo ""
+}
+
+function go() {
+    findLatestVersion
+
+    echo "${CLI_COLOR_YELLOW}The following major changes will be part of the next release:${CLI_COLOR_RESET}"
+    echo ""
+
+    mergeLogs=$(git log --pretty=oneline --abbrev-commit --reverse $maxVersionBranch..HEAD | grep Merge 2>&1)
+    IFS=$'\n' read -rd '' -a y <<<"$mergeLogs"
+
+    for i in "${y[@]}"
+    do
+        mergePullMatch=$(expr "$i" : '.* Merge pull request .*/\(.*\)')
+        mergePullWithTicketMatch=$(expr "$mergePullMatch" : '\([A-Z]*-[0-9]*\)')
+        if [ "$mergePullWithTicketMatch" = "" ]; then
+            if [ "$mergePullMatch" != "" ]; then
+                echo "${mergePullMatch/no-ticket\//}"
+                echo ""
+            fi
+        else
+            dirtyTitle=${mergePullMatch/$mergePullWithTicketMatch/}
+            pureTitle=$(expr "$dirtyTitle" : '[^a-zA-Z0-9]*\(.*\)')
+            if [ "$pureTitle" != "" ]; then
+                echo "${pureTitle}"
+            else
+                echo "title not specified"
+            fi
+            echo ""
+        fi
+    done
+}
+
+go

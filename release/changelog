@@ -1,0 +1,167 @@
+#!/bin/bash
+
+CLI_COLOR_RED=`tput setaf 1`
+CLI_COLOR_GREEN=`tput setaf 2`
+CLI_COLOR_YELLOW=`tput setaf 3`
+CLI_COLOR_BLUE=`tput setaf 4`
+CLI_COLOR_VIOLET=`tput setaf 5`
+CLI_COLOR_LIGHT_BLUE=`tput setaf 6`
+CLI_COLOR_WHITE=`tput setaf 7`
+CLI_COLOR_GRAY=`tput setaf 8`
+CLI_COLOR_PINK=`tput setaf 9`
+CLI_COLOR_LIGHT_GREEN=`tput setaf 10`
+CLI_COLOR_RESET=`tput sgr0`
+
+rootPath=$(git rev-parse --show-toplevel)
+GRADLE_FILE='build.gradle'
+CHANGELOG_FILE="${rootPath}/CHANGELOG.md"
+CHANGELOG_FILE_="${rootPath}/CHANGELOG.md_"
+
+maxVersionCode=0
+maxVersionName=""
+maxVersionBranch=""
+
+nextVersionCode="$1"
+nextVersionName="$2"
+
+if [ "$1" = "help" ]; then
+    echo "${CLI_COLOR_LIGHT_GREEN}Generates the changelog from the latest commits. Similar to ./diff.${CLI_COLOR_RESET}"
+    echo ""
+    echo "${CLI_COLOR_LIGHT_BLUE}./changelog <next version code> <next version name> <dry>${CLI_COLOR_LIGHT_GREEN} - to run it dry${CLI_COLOR_RESET}"
+    echo ""
+    echo "${CLI_COLOR_GRAY}example${CLI_COLOR_RESET}"
+    echo "${CLI_COLOR_GRAY}  ./changelog 1000001 1.0.0.1 dry${CLI_COLOR_RESET}"
+    echo "${CLI_COLOR_GRAY}  ./changelog 1000001 1.0.0.1${CLI_COLOR_RESET}"
+
+    exit 0
+fi
+
+if [ -z "$nextVersionCode" ]; then
+    echo "${CLI_COLOR_RED}Next version code shall be passed as ${CLI_COLOR_LIGHT_BLUE}first parameter${CLI_COLOR_RESET}"
+    exit 1
+fi
+if [ -z "$nextVersionName" ]; then
+    echo "${CLI_COLOR_RED}Next version name shall be passed as ${CLI_COLOR_LIGHT_BLUE}second parameter${CLI_COLOR_RESET}"
+    exit 1
+fi
+
+if [ "$3" = "dry" ]; then
+    DRY_RUN=true
+else
+    DRY_RUN=false
+fi
+
+function getVersionCodeFromFile() {
+    cat $1 | sed -En 's/^.*version_code = ([0-9]+).*$/\1/p'
+}
+
+function getVersionNameFromFile() {
+    cat $1 | sed -En 's/^.*version_name = "([^"]+)".*$/\1/p'
+}
+
+function findMaxVersion() {
+    for branch in $(git for-each-ref --format='%(refname)'); do
+        code=$(git show $branch:$GRADLE_FILE 2>/dev/null | sed -En 's/^.*version_code = ([0-9]+).*$/\1/p')
+
+        if [ -n "$code" ]; then
+            if [ "$code" -gt "$maxVersionCode" ]; then
+                maxVersionCode=$code
+                maxVersionName=$(git show $branch:$GRADLE_FILE 2>/dev/null | sed -En 's/^.*version_name = "([^"]+)".*$/\1/p')
+                maxVersionBranch=$branch
+            fi
+        fi
+        # echo "branch $branch - code $code"
+    done
+}
+
+function findLatestVersion() {
+    git fetch
+
+    findMaxVersion
+}
+
+function normalizeChangelog() {
+    sed -i.bak -n '/^# /!p' $CHANGELOG_FILE_
+    sed -i.bak -n '/^ *$/!p' $CHANGELOG_FILE_
+    sed -i -E 's/^-n-$/ /g' $CHANGELOG_FILE_
+
+    i=0
+    cat $CHANGELOG_FILE | while read line; do
+        if [[ $line == *"## "* ]]; then
+            replacement_escaped=$( echo "$content" | sed -e 's/[\/&]/\\&/g')
+            sed -i -e "${i}r ${CHANGELOG_FILE_}" "$CHANGELOG_FILE"
+            break
+        fi
+        i=$((i+1))
+    done
+
+    rm ${CHANGELOG_FILE}-*
+    rm $CHANGELOG_FILE_*
+}
+
+function finalize() {
+    if [ "$DRY_RUN" = true ]; then
+        echo "${CLI_COLOR_LIGHT_BLUE}finalize changes to ${CHANGELOG_FILE}${CLI_COLOR_RESET}"
+        echo ""
+        echo "${CLI_COLOR_YELLOW}  git diff ${CHANGELOG_FILE}${CLI_COLOR_LIGHT_BLUE} - just to make sure it's correct${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_YELLOW}  git checkout - ${CHANGELOG_FILE}${CLI_COLOR_LIGHT_BLUE} - reset and try again${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_YELLOW}  git add ${CHANGELOG_FILE} && git commit -m \"update changelog for ${nextVersionCode} ${nextVersionName}\"${CLI_COLOR_LIGHT_BLUE} - commit changelog file${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_YELLOW}  git push origin${CLI_COLOR_LIGHT_BLUE} - push to origin${CLI_COLOR_RESET}"
+
+    else
+        git reset
+        git add $CHANGELOG_FILE
+        git commit -m "update changelog for ${nextVersionCode} ${nextVersionName}"
+    fi
+}
+
+function go() {
+    findLatestVersion
+
+    rm -f $CHANGELOG_FILE_
+
+    echo -e "# Please enter the release messages for your changes.
+# Empty lines and lines starting with single '#' with a following
+# space will be ignored and not included in the changelog.
+# If you want to force empty line please use '-n-'.
+# The structure provided is just an example
+# so feel free to change it as you wish. Good luck...
+
+## [ $nextVersionCode - $nextVersionName ] - $(date +'%Y-%m-%d')
+# release highlights go here...
+# ### Summary
+# summary goes here...
+# ### Important
+# important notes here...
+### Changes" >> $CHANGELOG_FILE_
+
+    mergeLogs=$(git log --pretty=oneline --abbrev-commit --reverse $maxVersionBranch..HEAD | grep Merge 2>&1)
+    IFS=$'\n' read -rd '' -a y <<<"$mergeLogs"
+
+    for i in "${y[@]}"
+    do
+        mergePullMatch=$(expr "$i" : '.* Merge pull request .*/\(.*\)')
+        mergePullWithTicketMatch=$(expr "$mergePullMatch" : '\([A-Z]*-[0-9]*\)')
+        if [ "$mergePullWithTicketMatch" = "" ]; then
+            if [ "$mergePullMatch" != "" ]; then
+                echo -e "- ${mergePullMatch/no-ticket\//}
+-n-"  >> $CHANGELOG_FILE_
+            fi
+        else
+            dirtyTitle=${mergePullMatch/$mergePullWithTicketMatch/}
+            pureTitle=$(expr "$dirtyTitle" : '[^a-zA-Z0-9]*\(.*\)')
+            if [ "$pureTitle" != "" ]; then
+                echo -e "- ${pureTitle}" >> $CHANGELOG_FILE_
+            else
+                echo -e "- title not specified" >> $CHANGELOG_FILE_
+            fi
+            echo -e "-n-" >> $CHANGELOG_FILE_
+        fi
+    done
+
+    ${EDITOR:-vim} $CHANGELOG_FILE_
+    normalizeChangelog
+    finalize
+}
+
+go

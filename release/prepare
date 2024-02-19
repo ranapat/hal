@@ -1,0 +1,259 @@
+#!/bin/bash
+
+CLI_COLOR_RED=`tput setaf 1`
+CLI_COLOR_GREEN=`tput setaf 2`
+CLI_COLOR_YELLOW=`tput setaf 3`
+CLI_COLOR_BLUE=`tput setaf 4`
+CLI_COLOR_VIOLET=`tput setaf 5`
+CLI_COLOR_LIGHT_BLUE=`tput setaf 6`
+CLI_COLOR_WHITE=`tput setaf 7`
+CLI_COLOR_GRAY=`tput setaf 8`
+CLI_COLOR_PINK=`tput setaf 9`
+CLI_COLOR_LIGHT_GREEN=`tput setaf 10`
+CLI_COLOR_RESET=`tput sgr0`
+
+if [ "$1" = "dry" ]; then
+    DRY_RUN=true
+elif [ "$1" = "help" ]; then
+    echo "${CLI_COLOR_LIGHT_GREEN}Release prepare script for mobile android application.${CLI_COLOR_RESET}"
+    echo "${CLI_COLOR_WHITE}  Release is based on release branches.${CLI_COLOR_RESET}"
+    echo "${CLI_COLOR_WHITE}  The script uses the current branch as a base for the new release.${CLI_COLOR_RESET}"
+    echo ""
+    echo "${CLI_COLOR_LIGHT_BLUE}./prepare dry${CLI_COLOR_LIGHT_GREEN} - to run it dry${CLI_COLOR_RESET}"
+
+    exit 1
+else
+    DRY_RUN=false
+fi
+
+rootPath=$(git rev-parse --show-toplevel)
+GRADLE_FILE='build.gradle'
+
+maxVersionCode=0
+maxVersionName=""
+maxVersionBranch=""
+
+nextVersionCode=0
+nextVersionName=""
+nextVersionLevelIncrease=0
+
+function getRandomGreeting() {
+    GREETINGS=("Let the force be with you!" "Let bugs fleet away from your release!" "It is not raining outside, it looks like a nice day to release." "The second time is the lucky one." "Are you still trying?" "S*** happens.")
+    RANDOM=$$$(date +%s)
+    RANDOM_GREETING=${GREETINGS[$RANDOM % ${#GREETINGS[@]}]}
+
+    echo $RANDOM_GREETING
+}
+
+function getVersionCodeFromFile() {
+    cat $1 | sed -En 's/^.*version_code = ([0-9]+).*$/\1/p'
+}
+
+function getVersionNameFromFile() {
+    cat $1 | sed -En 's/^.*version_name = "([^"]+)".*$/\1/p'
+}
+
+function getNextVersionName() {
+    MINOR_1=$(echo "$1" | cut -f1 -d.)
+    MINOR_2=$(echo "$1" | cut -f2 -d.)
+    MINOR_3=$(echo "$1" | cut -f3 -d.)
+    MINOR_4=$(echo "$1" | cut -f4 -d.)
+
+    if [ -n "$2" ]; then
+        if [ "$2" -eq 0 ]; then
+            MINOR_4=$((MINOR_4+1))
+        elif [ "$2" -eq 1 ]; then
+            MINOR_3=$((MINOR_3+1))
+            MINOR_4=0
+        elif [ "$2" -eq 2 ]; then
+            MINOR_2=$((MINOR_2+1))
+            MINOR_3=0
+            MINOR_4=0
+        elif [ "$2" -eq 3 ]; then
+            MINOR_1=$((MINOR_1+1))
+            MINOR_2=0
+            MINOR_3=0
+            MINOR_4=0
+        else
+            MINOR_4=$((MINOR_4+1))
+        fi
+    else
+        MINOR_4=$((MINOR_4+1))
+    fi
+
+    echo "$MINOR_1.$MINOR_2.$MINOR_3.$MINOR_4"
+}
+
+function getReleaseBranch() {
+    MINOR_1=$(echo "$1" | cut -f1 -d.)
+    MINOR_2=$(echo "$1" | cut -f2 -d.)
+    MINOR_3=$(echo "$1" | cut -f3 -d.)
+    MINOR_4=$(echo "$1" | cut -f4 -d.)
+
+    echo "release-$MINOR_1.$MINOR_2.$MINOR_3"
+}
+
+function writeVersionsToFile() {
+    if [ "$DRY_RUN" = true ]; then
+        echo ""
+        echo "${CLI_COLOR_GRAY}  change $GRADLE_FILE${CLI_COLOR_RESET}"
+
+        echo "${CLI_COLOR_GRAY}    sed -E \"s/version_code = ([0-9]+)/version_code = $nextVersionCode/g\" $rootPath/$GRADLE_FILE > $rootPath/$GRADLE_FILE.v1${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_GRAY}    sed -E \"s/version_name = \\\"(.+)\\\"/version_name = \\\"$nextVersionName\\\"/g\" $rootPath/$GRADLE_FILE.v1 > $rootPath/$GRADLE_FILE.v2${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_GRAY}    rm $rootPath/$GRADLE_FILE${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_GRAY}    rm $rootPath/$GRADLE_FILE.v1${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_GRAY}    mv $rootPath/$GRADLE_FILE.v2 $rootPath/$GRADLE_FILE${CLI_COLOR_RESET}"
+    else
+        sed -E "s/version_code = ([0-9]+)/version_code = $nextVersionCode/g" $rootPath/$GRADLE_FILE > $rootPath/$GRADLE_FILE.v1
+        sed -E "s/version_name = \"(.+)\"/version_name = \"$nextVersionName\"/g" $rootPath/$GRADLE_FILE.v1 > $rootPath/$GRADLE_FILE.v2
+
+        rm $rootPath/$GRADLE_FILE
+        rm $rootPath/$GRADLE_FILE.v1
+        mv $rootPath/$GRADLE_FILE.v2 $rootPath/$GRADLE_FILE
+    fi
+}
+
+function commitVersionFile() {
+    if [ "$DRY_RUN" = true ]; then
+        echo ""
+        echo "${CLI_COLOR_GRAY}  commit and tag${CLI_COLOR_RESET}"
+
+        echo "${CLI_COLOR_GRAY}    git add $rootPath/$GRADLE_FILE${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_GRAY}    git commit -m \"release version $nextVersionCode $nextVersionName\"${CLI_COLOR_RESET}"
+        echo "${CLI_COLOR_GRAY}    git tag $nextVersionName${CLI_COLOR_RESET}"
+    else
+        git add $rootPath/$GRADLE_FILE
+        git commit -m "release version $nextVersionCode $nextVersionName"
+        git tag $nextVersionName
+    fi
+
+    echo ""
+    echo "${CLI_COLOR_YELLOW}  don't forget to push to origin or whatever build pipeline is connected to${CLI_COLOR_RESET}"
+    echo "${CLI_COLOR_YELLOW}    git push origin${CLI_COLOR_RESET}"
+    echo "${CLI_COLOR_YELLOW}    git push origin $nextVersionName${CLI_COLOR_RESET}"
+
+    if [ "$DRY_RUN" = true ]; then
+        echo ""
+        echo "${CLI_COLOR_GREEN}Almost done... Check around and push when ready. Don't forget to push the tags.${CLI_COLOR_RESET}"
+    else
+        read -p "${CLI_COLOR_YELLOW}Do you want to push automatically? ( ${CLI_COLOR_GREEN}y${CLI_COLOR_YELLOW} / ${CLI_COLOR_RED}N${CLI_COLOR_YELLOW} )? ${CLI_COLOR_RESET}" answer
+        if [ "$answer" != "${answer#[Yy]}" ] ;then
+            git push --set-upstream origin $(getReleaseBranch $nextVersionName)
+            git push origin $nextVersionName
+
+            echo ""
+            echo "${CLI_COLOR_GREEN}All done... Check around just to be sure.${CLI_COLOR_RESET}"
+        else
+            echo ""
+            echo "${CLI_COLOR_GREEN}Almost done... Check around and push when ready. Don't forget to push the tags.${CLI_COLOR_RESET}"
+        fi
+    fi
+}
+
+function findMaxVersion() {
+    for branch in $(git for-each-ref --format='%(refname)'); do
+        code=$(git show $branch:$GRADLE_FILE 2>/dev/null | sed -En 's/^.*version_code = ([0-9]+).*$/\1/p')
+
+        if [ -n "$code" ]; then
+            if [ "$code" -gt "$maxVersionCode" ]; then
+                maxVersionCode=$code
+                maxVersionName=$(git show $branch:$GRADLE_FILE 2>/dev/null | sed -En 's/^.*version_name = "([^"]+)".*$/\1/p')
+                maxVersionBranch=$branch
+            fi
+        fi
+        # echo "branch $branch - code $code"
+    done
+}
+
+function findNextVersion() {
+    echo "${CLI_COLOR_GREEN}git fetching...${CLI_COLOR_RESET}"
+    git fetch
+
+    echo "${CLI_COLOR_GREEN}git checking all branches for latest version...${CLI_COLOR_RESET}"
+    findMaxVersion
+
+    echo "${CLI_COLOR_GREEN}Current version is ${CLI_COLOR_WHITE}$maxVersionCode ${CLI_COLOR_LIGHT_BLUE}$maxVersionName${CLI_COLOR_GREEN} and is located in ${CLI_COLOR_YELLOW}$maxVersionBranch${CLI_COLOR_RESET}"
+    echo ""
+
+    nextVersionCode=$((maxVersionCode+1))
+
+    read -p "${CLI_COLOR_YELLOW}Do you want a minor version release ${CLI_COLOR_LIGHT_BLUE}$(getNextVersionName $maxVersionName 0)${CLI_COLOR_YELLOW} ( ${CLI_COLOR_GREEN}y${CLI_COLOR_YELLOW} / ${CLI_COLOR_RED}N${CLI_COLOR_YELLOW} )? ${CLI_COLOR_RESET}" answer
+    if [ "$answer" != "${answer#[Yy]}" ] ;then
+        nextVersionName=$(getNextVersionName $maxVersionName 0)
+        nextVersionLevelIncrease=0
+    else
+        read -p "${CLI_COLOR_YELLOW}Do you want a higher version release ${CLI_COLOR_LIGHT_BLUE}$(getNextVersionName $maxVersionName 1)${CLI_COLOR_YELLOW} ( ${CLI_COLOR_GREEN}y${CLI_COLOR_YELLOW} / ${CLI_COLOR_RED}N${CLI_COLOR_YELLOW} )? ${CLI_COLOR_RESET}" answer
+        if [ "$answer" != "${answer#[Yy]}" ] ;then
+            nextVersionName=$(getNextVersionName $maxVersionName 1)
+            nextVersionLevelIncrease=1
+        else
+            read -p "${CLI_COLOR_YELLOW}Do you want even higher version release ${CLI_COLOR_LIGHT_BLUE}$(getNextVersionName $maxVersionName 2)${CLI_COLOR_YELLOW} ( ${CLI_COLOR_GREEN}y${CLI_COLOR_YELLOW} / ${CLI_COLOR_RED}N${CLI_COLOR_YELLOW} )? ${CLI_COLOR_RESET}" answer
+            if [ "$answer" != "${answer#[Yy]}" ] ;then
+                nextVersionName=$(getNextVersionName $maxVersionName 2)
+                nextVersionLevelIncrease=2
+            else
+                read -p "${CLI_COLOR_YELLOW}Do you want a major version release ${CLI_COLOR_LIGHT_BLUE}$(getNextVersionName $maxVersionName 3)${CLI_COLOR_YELLOW} ( ${CLI_COLOR_GREEN}y${CLI_COLOR_YELLOW} / ${CLI_COLOR_RED}N${CLI_COLOR_YELLOW} )? ${CLI_COLOR_RESET}" answer
+                if [ "$answer" != "${answer#[Yy]}" ] ;then
+                    nextVersionName=$(getNextVersionName $maxVersionName 3)
+                    nextVersionLevelIncrease=3
+                else
+                    read -p "${CLI_COLOR_YELLOW}Write your own version ${CLI_COLOR_RESET}" nextVersionName
+                    nextVersionLevelIncrease=4
+                fi
+            fi
+        fi
+    fi
+}
+
+function pickReleaseBranch() {
+    read -p "${CLI_COLOR_YELLOW}Do you want to stay in the ${CLI_COLOR_LIGHT_BLUE}same branch${CLI_COLOR_YELLOW} ( ${CLI_COLOR_GREEN}y${CLI_COLOR_YELLOW} / ${CLI_COLOR_RED}N${CLI_COLOR_YELLOW} )? ${CLI_COLOR_RESET}" answer
+    if [ "$answer" != "${answer#[Yy]}" ] ;then
+        echo "${CLI_COLOR_GREEN}will stay in the same branch...${CLI_COLOR_RESET}"
+    else
+        read -p "${CLI_COLOR_YELLOW}Do you want to create a new release branch ${CLI_COLOR_LIGHT_BLUE}$(getReleaseBranch $nextVersionName)${CLI_COLOR_YELLOW} ( ${CLI_COLOR_GREEN}y${CLI_COLOR_YELLOW} / ${CLI_COLOR_RED}N${CLI_COLOR_YELLOW} )? ${CLI_COLOR_RESET}" answer
+        if [ "$answer" != "${answer#[Yy]}" ] ;then
+            echo "${CLI_COLOR_GREEN}will create a new brach ${CLI_COLOR_LIGHT_BLUE}$(getReleaseBranch $nextVersionName)${CLI_COLOR_GREEN}...${CLI_COLOR_RESET}"
+            if [ "$DRY_RUN" = true ]; then
+                echo ""
+                echo "${CLI_COLOR_GRAY}  checkout to branch${CLI_COLOR_RESET}"
+
+                echo "${CLI_COLOR_GRAY}    git checkout -B $(getReleaseBranch $nextVersionName)${CLI_COLOR_RESET}"
+            else
+                git checkout -B $(getReleaseBranch $nextVersionName)
+            fi
+        else
+            read -p "${CLI_COLOR_YELLOW}Write your own branch name ${CLI_COLOR_RESET}" branchName
+            echo "${CLI_COLOR_GREEN}will create a new brach ${CLI_COLOR_LIGHT_BLUE}$branchName${CLI_COLOR_GREEN}...${CLI_COLOR_RESET}"
+            if [ "$DRY_RUN" = true ]; then
+                echo ""
+                echo "${CLI_COLOR_GRAY}  checkout to branch${CLI_COLOR_RESET}"
+
+                echo "${CLI_COLOR_GRAY}    git checkout -B $branchName${CLI_COLOR_RESET}"
+            else
+                git checkout -B $branchName
+            fi
+        fi
+    fi
+}
+
+function offerChangelog() {
+    read -p "${CLI_COLOR_YELLOW}Do you want to update CHANGELOG.md in the current branch you are in${CLI_COLOR_YELLOW} ( ${CLI_COLOR_GREEN}y${CLI_COLOR_YELLOW} / ${CLI_COLOR_RED}N${CLI_COLOR_YELLOW} )? ${CLI_COLOR_RESET}" answer
+    if [ "$answer" != "${answer#[Yy]}" ] ;then
+        ${rootPath}/release/changelog $nextVersionCode $nextVersionName
+    fi
+}
+
+function go() {
+    findNextVersion
+    echo "${CLI_COLOR_GREEN}next version will be ${CLI_COLOR_WHITE}$nextVersionCode ${CLI_COLOR_LIGHT_BLUE}$nextVersionName${CLI_COLOR_RESET}"
+    offerChangelog
+    pickReleaseBranch
+    echo "${CLI_COLOR_GREEN}updating ${CLI_COLOR_WHITE}$GRADLE_FILE${CLI_COLOR_GREEN}...${CLI_COLOR_RESET}"
+    writeVersionsToFile
+    commitVersionFile
+
+    echo ""
+    echo "${CLI_COLOR_GREEN}Good luck! ${CLI_COLOR_WHITE}$(getRandomGreeting)${CLI_COLOR_RESET}"
+}
+
+go

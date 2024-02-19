@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the project will be documented in this file.
 
+## [ 12 - 1.12.0 ] - 2021-12-13
+Support hyphen and update gradle
+Thanks to @alenpmla
+
 ## [ 9 - 1.9.0 ] - 2021-12-13
 Wild matching
 

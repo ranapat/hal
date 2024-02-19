@@ -1,5 +1,10 @@
-apply plugin: "com.android.library"
-apply plugin: "maven-publish"
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+group = 'com.github.ranapat'
+version = version_name
 
 apply from: "./jacoco.gradle"
 
@@ -40,7 +45,7 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:${test.espresso}"
 }
 
-afterEvaluate {
+/*afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
@@ -50,6 +55,19 @@ afterEvaluate {
                 //artifactId = 'hal'
                 //version = version_code
                 //artifact(sourcesJar)
+            }
+        }
+    }
+}*/
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.ranapat'
+            artifactId = 'hal'
+            version = version_name
+
+            afterEvaluate {
+                from components.release
             }
         }
     }

@@ -11,25 +11,31 @@ Android library for Hal url parameter parsing library
 
 ### ```{?name}``` - name is optional
 ```/path/{?name}``` will become ```/path/?name=value```
+
 or
 ```/path/{?name}``` will become ```/path/```
 
 ### ```{&name}``` - name is optional
 ```/path/{&name}``` will become ```/path/?name=value```
+
 or
 ```/path/{&name}``` will become ```/path/```
 
 ### ```{#name}``` - name is optional
 ```/path/{#name}``` will become ```/path/?name=value```
+
 or
 ```/path/{#name}``` will become ```/path/```
 
 ### ```{#name1,name2}``` - name1 and name2 are optional
 ```/path/{#name1,name2}``` will become ```/path/?name1=value1&name2=value2```
+
 or
 ```/path/{#name1,name2}``` will become ```/path/?name1=value1```
+
 or
 ```/path/{#name1,name2}``` will become ```/path/?name2=value2```
+
 or
 ```/path/{#name1,name2}``` will become ```/path/```
 
@@ -40,8 +46,10 @@ or
 
 ### ```{*name}``` - name is wild
 ```/path/{*name}``` will become ```/path/value```
+
 or
 ```/path/{*name}``` will become ```/path/```
+
 or
 ```/path/{*name}``` will become ```/path/complete/path/with/many```
 
@@ -50,12 +58,15 @@ It's the same as `{*name}` wild, but with empty.
 
 
 ```/path/{!name}``` will become ```/path/value```
+
 or
 ```/path/{!name}``` will become ```/path/```
+
 or
 ```/path/{!name}``` will become ```/path/complete/path/with/many```
+
 or
-```/path/```
+```/path/{!name}``` will become  ```/path/```
 
 #### Important!
 

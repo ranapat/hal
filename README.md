@@ -45,7 +45,7 @@ or
 or
 ```/path/{*name}``` will become ```/path/complete/path/with/many```
 
-### ```{!name}``` - name is wildest
+### ```{!name}``` - name is wildest <img src="./assets/new.svg" alt="new" width="16" height="16" />
 It's the same as `{*name}` wild, but with empty.
 
 

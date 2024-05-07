@@ -57,8 +57,13 @@ or
 or
 ```/path/```
 
-Important! you cannot put more than one variables after each other. The first one will take all possible (hungry matching).
-Cases like `{!name1}{!name2}` will result in all values going into `name1` and nothing in `name2`
+#### Important!
+
+You cannot put more than one *wildest* variables in a row.
+The first one will take all possible (hungry matching).
+Cases like `{!name1}{!name2}` will result in all values going into `name1` and nothing in `name2`.
+Also make sure that *wildest* will always match even if it's null.
+Make sure you do not match false positive results because of this.
 
 ## How to get it
 

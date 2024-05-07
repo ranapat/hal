@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to the project will be documented in this file.
 
+## [ 14 - 1.13.1.0 ] - 2024-05-07
+Try with wildest matching.
+### Important
+You can have just one wildest in a row.
+The first one will get as mush as possible as it matches in a hungry mode.
+Cases like {!key1}{!key2} will leave null for key2.
+Also be careful key2 will be null and still "pass" as a match.
+So use with care.
+### Changes
 ## [ 13 - 1.13.0.0 ] - 2024-02-19
 try new release scripts
 ### Changes

@@ -4,6 +4,7 @@ import static org.ranapat.hal.HalConstants.nullablePattern;
 import static org.ranapat.hal.HalConstants.optionalPattern;
 import static org.ranapat.hal.HalConstants.requiredPattern;
 import static org.ranapat.hal.HalConstants.wildPattern;
+import static org.ranapat.hal.HalConstants.wildestPattern;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +42,7 @@ public final class HalUrl {
         final List<String> optional = getOptionalKeys();
         final List<String> nullable = getNullableKeys();
         final List<String> wild = getWildKeys();
+        final List<String> wildest = getWildestKeys();
 
         for (final String key : required) {
             result.add(new HalParameter(key, HalParameter.Type.Required));
@@ -53,6 +55,9 @@ public final class HalUrl {
         }
         for (final String key : wild) {
             result.add(new HalParameter(key, HalParameter.Type.Wild));
+        }
+        for (final String key : wildest) {
+            result.add(new HalParameter(key, HalParameter.Type.Wildest));
         }
 
         return result;
@@ -75,6 +80,7 @@ public final class HalUrl {
         final List<String> optional = getOptionalKeys();
         final List<String> nullable = getNullableKeys();
         final List<String> wild = getWildKeys();
+        final List<String> wildest = getWildestKeys();
 
         if (!provided.containsAll(required)) {
             throw new HalMissingRequiredParametersException(getMissing(required, provided));
@@ -84,6 +90,7 @@ public final class HalUrl {
         result = populateOptional(result, optional);
         result = populateNullable(result, nullable);
         result = populateWild(result, wild);
+        result = populateWildest(result, wildest);
 
         return result;
     }
@@ -126,6 +133,17 @@ public final class HalUrl {
     private List<String> getWildKeys() {
         final List<String> allMatches = new ArrayList<>();
         final Matcher m = wildPattern.matcher(url);
+
+        while (m.find()) {
+            allMatches.add(m.group(1));
+        }
+
+        return allMatches;
+    }
+
+    private List<String> getWildestKeys() {
+        final List<String> allMatches = new ArrayList<>();
+        final Matcher m = wildestPattern.matcher(url);
 
         while (m.find()) {
             allMatches.add(m.group(1));
@@ -214,6 +232,20 @@ public final class HalUrl {
                 result = result.replaceAll("\\{\\*" + key + "\\}", "");
             } else {
                 result = result.replaceAll("\\{\\*" + key + "\\}", parameters.get(key));
+            }
+        }
+
+        return result;
+    }
+
+    private String populateWildest(final String url, final List<String> wildest) {
+        String result = url;
+
+        for (final String key : wildest) {
+            if (!parameters.containsKey(key)) {
+                result = result.replaceAll("\\{\\!" + key + "\\}", "");
+            } else {
+                result = result.replaceAll("\\{\\!" + key + "\\}", parameters.get(key));
             }
         }
 

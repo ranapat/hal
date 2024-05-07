@@ -45,6 +45,21 @@ or
 or
 ```/path/{*name}``` will become ```/path/complete/path/with/many```
 
+### ```{!name}``` - name is wildest
+It's the same as `{*name}` wild, but with empty.
+
+
+```/path/{!name}``` will become ```/path/value```
+or
+```/path/{!name}``` will become ```/path/```
+or
+```/path/{!name}``` will become ```/path/complete/path/with/many```
+or
+```/path/```
+
+Important! you cannot put more than one variables after each other. The first one will take all possible (hungry matching).
+Cases like `{!name1}{!name2}` will result in all values going into `name1` and nothing in `name2`
+
 ## How to get it
 
 ### Get it from jitpack

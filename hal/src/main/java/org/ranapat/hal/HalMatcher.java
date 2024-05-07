@@ -50,6 +50,9 @@ public final class HalMatcher {
             } else if (parameter.type == HalParameter.Type.Wild) {
                 halUrl.addParameter(parameter.name, "(.+)");
                 usedParameters.add(parameter);
+            } else if (parameter.type == HalParameter.Type.Wildest) {
+                halUrl.addParameter(parameter.name, "(.*)");
+                usedParameters.add(parameter);
             } else {
                 halUrl.addParameter(parameter.name, "([,\\\\w\\\\-]*)");
                 usedParameters.add(parameter);

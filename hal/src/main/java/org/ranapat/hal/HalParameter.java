@@ -5,7 +5,8 @@ public class HalParameter {
         Required,
         Optional,
         Nullable,
-        Wild
+        Wild,
+        Wildest
     }
 
     public final String name;

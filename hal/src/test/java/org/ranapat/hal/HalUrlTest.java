@@ -368,6 +368,31 @@ public class HalUrlTest {
     }
 
     @Test
+    public void shouldHandleWildestParametersCase1() {
+        final HalUrl halUrl = new HalUrl("something/{!key1}");
+        halUrl.addParameter("key1", "value1");
+
+        assertThat(halUrl.toString(), is(equalTo("something/value1")));
+    }
+
+    @Test
+    public void shouldHandleWildestParametersCase2() {
+        final HalUrl halUrl = new HalUrl("something/{!key1}");
+        halUrl.addParameter("key2", "value2");
+
+        assertThat(halUrl.toString(), is(equalTo("something/")));
+    }
+
+    @Test
+    public void shouldHandleWildestParametersCase3() {
+        final HalUrl halUrl = new HalUrl("something/{!key1,key2}");
+        halUrl.addParameter("key1", "value1");
+        halUrl.addParameter("key2", "value2");
+
+        assertThat(halUrl.toString(), is(equalTo("something/")));
+    }
+
+    @Test
     public void shouldHandleMixedParametersCase1() {
         final HalUrl halUrl = new HalUrl("something/{key1}{#key2,key3}&key4=value4{#key5,key6}");
         halUrl.addParameter("key1", "value1");
